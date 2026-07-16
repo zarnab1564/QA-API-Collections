@@ -1,0 +1,6457 @@
+{
+	"info": {
+		"_postman_id": "664367c4-119d-492d-9c1c-bc0aefb4a96b",
+		"name": "Latest PakGari",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37872265"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Sign Up With Email",
+					"item": [
+						{
+							"name": "Sign up",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();\r",
+											"\r",
+											"pm.collectionVariables.set(\"email_pin\",response.pin_id);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// Generate a random username and store it as a collection variable",
+											"const randomUsername = `user_${Math.random().toString(36).substr(2, 8)}`;",
+											"pm.collectionVariables.set(\"random_user\", randomUsername);",
+											"",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "{{client_secret}}",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "{{client_id}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"display_name\": \"Test\",\r\n\"email\": \"{{random_user}}@maildrop.cc\",\r\n\"password\": \"1234567\",\r\n\"updates\": 1,\r\n\"user_type\": 1}\r\n\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/users.json?api_version=18",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "18"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Resend Pin",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"pin_id_email\": {{email_pin}}}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/login-with-email/resend-pin.json?api_version=18",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"login-with-email",
+										"resend-pin.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "18"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Maildrop",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();\r",
+											"let sub = response.data.inbox[0].subject;\r",
+											"let match = sub.match(/\\d{6}/);\r",
+											"pm.collectionVariables.set(\"email_otp\",match[0]);\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"operationName\": \"GetInbox\",\r\n  \"query\": \"query GetInbox($mailbox: String!) {\\n  ping(message: \\\"Test\\\")\\n  inbox(mailbox: $mailbox) {\\n    id\\n    subject\\n    date\\n    headerfrom\\n    __typename\\n  }\\n  altinbox(mailbox: $mailbox)\\n}\\n\",\r\n  \"variables\": {\r\n    \"mailbox\": \"{{random_user}}\"\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.maildrop.cc/graphql",
+									"protocol": "https",
+									"host": [
+										"api",
+										"maildrop",
+										"cc"
+									],
+									"path": [
+										"graphql"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "{{client_secret}}",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "{{client_id}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"pin_email\":\"{{email_otp}}\",\r\n\"pin_id_email\": \"{{email_pin}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/login-with-email/verify.json?api_version=18",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"login-with-email",
+										"verify.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "18"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Login with Mobile Number",
+					"item": [
+						{
+							"name": "Login with Mobile Number",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json(); \r",
+											"\r",
+											"\r",
+											"pm.collectionVariables.set(\"pin_id\",jsonData.pin_id)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "{{client_secret}}",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "{{client_id}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"mobile_number\": \"03601234567\",\r\n    \"country_code\": \"92\",\r\n    \"via_whatsapp\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/login-with-mobile.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"login-with-mobile.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Resend OTP",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Sleep for 3 seconds\r",
+											"\r",
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Resend OTP Successful\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql( \"Code has been sent successfully\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"function sleep(milliseconds) {\r",
+											"    const start = new Date().getTime();\r",
+											"    while ((new Date().getTime() - start) < milliseconds) {\r",
+											"        // Busy-wait\r",
+											"    }\r",
+											"}\r",
+											"\r",
+											"sleep(30000); "
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"pin_id\": \"{{pin_id}}\",\r\n    \"via_whatsapp\": false\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/login-with-mobile/resend-pin.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"login-with-mobile",
+										"resend-pin.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Resend OTP via Call",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"\r",
+											"\r",
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Resend OTP Successful\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql( \"You will receive an automated call with OTP shortly\");\r",
+											"});\r",
+											"\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"function sleep(milliseconds) {\r",
+											"    const start = new Date().getTime();\r",
+											"    while ((new Date().getTime() - start) < milliseconds) {\r",
+											"        // Busy-wait\r",
+											"    }\r",
+											"}\r",
+											"\r",
+											"sleep(30000); "
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"pin_id\": \"{{pin_id}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/login-with-mobile/resend-pin-via-call.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"login-with-mobile",
+										"resend-pin-via-call.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Verify  OTP",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "5af8ac18fe8ab38daa00c2d82f5dca25",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "170f54517b0b52cc82c4d7a5f3dbf272",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"pin\": \"123456\", \r\n    \"pin_id\": \"{{pin_id}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/login-with-mobile/verify.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"login-with-mobile",
+										"verify.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Login with Email",
+					"item": [
+						{
+							"name": "Login with Email",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Successful Login\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).include(\"Your account has been created.\");\r",
+											"});\r",
+											"\r",
+											"pm.test(\"No Error\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"\");\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "{{client_secret}}",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "{{client_id}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    //\"username\": \"iostest@maildrop.cc\", \r\n    \"username\": \"{{email}}\",\r\n    \"password\": \"1234567\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/login-with-email.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"login-with-email.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get Access Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json(); \r",
+									"\r",
+									"//getting acceess_token\r",
+									"pm.collectionVariables.set(\"access_token\",jsonData.access_token)\r",
+									"\r",
+									"//getting user_id\r",
+									"pm.collectionVariables.set(\"user_id\",jsonData.user.id);\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{client_secret}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{client_id}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    //\"username\": \"newchatuser@maildrop.cc\", \r\n    \"username\": \"{{email}}\",\r\n    \"password\": \"1234567\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/oauth/token.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"oauth",
+								"token.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Primary Number Verification",
+			"item": [
+				{
+					"name": "Add Mobile Number",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.collectionVariables.set(\"pin_id\",jsonData.pin_id);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/add-mobile-number.json?api_version={{api_version}}&mobile_number={{mobile_number}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"add-mobile-number.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "mobile_number",
+									"value": "{{mobile_number}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Enter OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json(); \r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success = true\", function () {\r",
+									"    pm.expect(jsonData.success).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Mobile Number Verified Successfully\", function () {\r",
+									"    pm.expect(jsonData.message).to.eql(\"Mobile Number verified successfully\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/add-mobile-number/verify.json?api_version={{api_version}}&pin_id={{pin_id}}&pin=123456",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"add-mobile-number",
+								"verify.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "pin_id",
+									"value": "{{pin_id}}"
+								},
+								{
+									"key": "pin",
+									"value": "123456"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Ad Posting",
+			"item": [
+				{
+					"name": "Used Car",
+					"item": [
+						{
+							"name": "Ad Posting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Post Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.be.empty;\r",
+											"});\r",
+											"\r",
+											"var jsonData = pm.response.json(); \r",
+											"\r",
+											"pm.collectionVariables.set(\"posted_ad_url_slug\",jsonData.success)\r",
+											"pm.collectionVariables.set(\"posted_ad_id\",jsonData.ad_id)\r",
+											"pm.collectionVariables.set(\"posted_ad_listing_id\",jsonData.ad_listing_id)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const clientId = pm.environment.get(\"client_id\");\r",
+											"const clientSecret = pm.environment.get(\"client_secret\");\r",
+											"const authString = btoa(`${clientId}:${clientSecret}`);\r",
+											"pm.sendRequest({\r",
+											"    url: 'https://www.pakgari.com/oauth/token.json?api_version=25',\r",
+											"    method: 'POST',\r",
+											"    header: {\r",
+											"        'Content-Type': 'application/json',\r",
+											"        'Authorization': `Basic ${authString}`\r",
+											"    },\r",
+											"    body: {\r",
+											"        mode: 'raw',\r",
+											"        raw: JSON.stringify({\r",
+											"            \"username\": \"iostest@maildrop.cc\",\r",
+											"            \"password\": \"1234567\"\r",
+											"        })\r",
+											"    }\r",
+											"}, function (err, response) {\r",
+											"    if (err) {\r",
+											"        console.log('Error:', err);\r",
+											"    } else {\r",
+											"        console.log('OAuth response:', response.json());\r",
+											"        \r",
+											"        // Store access_token as collection variable\r",
+											"        if (response.json().access_token) {\r",
+											"            pm.collectionVariables.set(\"access_token\", response.json().access_token);\r",
+											"            console.log('Access token stored successfully');\r",
+											"        } else {\r",
+											"            console.log('No access_token found in response');\r",
+											"        }\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"used_car\": {\r\n    \"model_year\": 2023,\r\n    \"car_manufacturer_id\": 42,\r\n    \"car_model_id\": 118,\r\n    \"car_version_id\": 54,\r\n    \"car_model_generation_id\": 8,\r\n    \"reg_province_id\": 1,\r\n    \"reg_city_id\": null,\r\n    \"mileage\": \"115000\",\r\n    \"transmission\": \"Manual\",\r\n    \"engine_type\": \"Petrol\",\r\n    \"assembly\": \"Local\",\r\n    \"exterior_color\": \"black\",\r\n    \"engine_capacity\": \"1300\",\r\n    \"ad_listing_attributes\": {\r\n      \"city_id\": 408,\r\n      \"city_area_id\": 579,\r\n      \"description\": \"100% original. As good as a brand new car. 100% maintained by dealership.\",\r\n      \"display_name\": \"Test through Postman\",\r\n      \"price\": \"5400000\",\r\n      \"phone\": \"03601234567\",\r\n      \"pictures_attributes\": {\r\n        \"0\": {\r\n          \"pictures_ids\": \"20163143\"\r\n        }\r\n      },\r\n      \"allow_whatsapp\": true,\r\n      \"category_id\": 24\r\n    },\r\n    \"abs\": 0,\r\n    \"air_bags\": 1,\r\n    \"air_conditioning\": 1,\r\n    \"alloy_rims\": 0,\r\n    \"cassette_player\": 0,\r\n    \"cd_player\": 0,\r\n    \"cool_box\": 0,\r\n    \"cruise_control\": 0,\r\n    \"dvd_player\": 1,\r\n    \"am_fm_radio\": 1,\r\n    \"immobilizer_key\": 1,\r\n    \"keyless_entry\": 0,\r\n    \"navigation_system\": 0,\r\n    \"power_locks\": 0,\r\n    \"power_mirrors\": 0,\r\n    \"power_steering\": 1,\r\n    \"power_windows\": 0,\r\n    \"sun_roof\": 0,\r\n    \"price_calculator_params\": {\r\n      \"initial_price\": 5400000,\r\n      \"estimated_price\": 7000000,\r\n      \"estimated_price_lower_bound\": 7000000,\r\n      \"estimated_price_upper_bound\": 7490000\r\n    }\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/used-cars.json?api_version={{api_version}}&via_whatsapp={{whatsapp_flag}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"used-cars.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										},
+										{
+											"key": "via_whatsapp",
+											"value": "{{whatsapp_flag}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Edit Ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Edit Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.be.empty;\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"used_car\": {\r\n    \"model_year\": 2023,\r\n    \"car_manufacturer_id\": 42,\r\n    \"car_model_id\": 118,\r\n    \"car_version_id\": 54,\r\n    \"car_model_generation_id\": 8,\r\n    \"reg_province_id\": 1,\r\n    \"reg_city_id\": null,\r\n    \"mileage\": \"115000\",\r\n    \"transmission\": \"Manual\",\r\n    \"engine_type\": \"Petrol\",\r\n    \"assembly\": \"Local\",\r\n    \"exterior_color\": \"white\",\r\n    \"engine_capacity\": \"1300\",\r\n    \"battery_capacity\": \"\",\r\n    \"ad_listing_attributes\": {\r\n      \"id\": {{posted_ad_listing_id}},\r\n      \"city_id\": 408,\r\n      \"city_area_id\": 579,\r\n      \"description\": \"100% original. As good as a brand new car. 100% maintained by dealership.\",\r\n      \"display_name\": \"Taimoor\",\r\n      \"price\": \"5600000\",\r\n      \"phone\": \"03601234567\",\r\n      \"pictures_attributes\": {\r\n        \"0\": {\r\n          \"pictures_ids\": \"20163143\"\r\n        }\r\n      },\r\n      \"allow_whatsapp\": true,\r\n      \"category_id\": 24\r\n    },\r\n    \"abs\": 0,\r\n    \"air_bags\": 1,\r\n    \"air_conditioning\": 1,\r\n    \"alloy_rims\": 0,\r\n    \"cassette_player\": 0,\r\n    \"cd_player\": 0,\r\n    \"cool_box\": 0,\r\n    \"cruise_control\": 0,\r\n    \"dvd_player\": 1,\r\n    \"am_fm_radio\": 1,\r\n    \"immobilizer_key\": 1,\r\n    \"keyless_entry\": 0,\r\n    \"navigation_system\": 0,\r\n    \"power_locks\": 0,\r\n    \"power_mirrors\": 0,\r\n    \"power_steering\": 1,\r\n    \"power_windows\": 0,\r\n    \"sun_roof\": 0\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/used-cars/{{posted_ad_id}}.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"used-cars",
+										"{{posted_ad_id}}.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Remove Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your Ad has been Removed.\");\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"ad_listing\": {\r\n            \"closed_status\":\"Not selling\"  \r\n        }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}{{posted_ad_url_slug}}/close.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}{{posted_ad_url_slug}}"
+									],
+									"path": [
+										"close.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Reactive Ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Remove Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.be.empty;\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}{{posted_ad_url_slug}}/refresh.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}{{posted_ad_url_slug}}"
+									],
+									"path": [
+										"refresh.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Boost",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Boosted Successful\", () => {\r",
+											"    const response = pm.response.json(); \r",
+											"    pm.expect(response.success).to.include(\"Your Ad has been Boosted\"); \r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}{{posted_ad_url_slug}}/bump.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}{{posted_ad_url_slug}}"
+									],
+									"path": [
+										"bump.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Feature",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"feature_weeks\": 1}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/used-cars/{{posted_ad_id}}/feature.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"used-cars",
+										"{{posted_ad_id}}",
+										"feature.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Used Bikes",
+					"item": [
+						{
+							"name": "Ad Post",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Post Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.be.empty;\r",
+											"});\r",
+											"\r",
+											"var jsonData = pm.response.json(); \r",
+											"\r",
+											"//getting newly posted ad's URL Slug\r",
+											"pm.collectionVariables.set(\"posted_bike_ad_url_slug\",jsonData.success)\r",
+											"pm.collectionVariables.set(\"posted_bike_ad_id\",jsonData.ad_id)\r",
+											"pm.collectionVariables.set(\"posted_bike_ad_listing_id\",jsonData.ad_listing_id)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const clientId = pm.environment.get(\"client_id\");\r",
+											"const clientSecret = pm.environment.get(\"client_secret\");\r",
+											"const authString = btoa(`${clientId}:${clientSecret}`);\r",
+											"pm.sendRequest({\r",
+											"    url: 'https://www.pakgari.com/oauth/token.json?api_version=25',\r",
+											"    method: 'POST',\r",
+											"    header: {\r",
+											"        'Content-Type': 'application/json',\r",
+											"        'Authorization': `Basic ${authString}`\r",
+											"    },\r",
+											"    body: {\r",
+											"        mode: 'raw',\r",
+											"        raw: JSON.stringify({\r",
+											"            \"username\": \"iostest@maildrop.cc\",\r",
+											"            \"password\": \"1234567\"\r",
+											"        })\r",
+											"    }\r",
+											"}, function (err, response) {\r",
+											"    if (err) {\r",
+											"        console.log('Error:', err);\r",
+											"    } else {\r",
+											"        console.log('OAuth response:', response.json());\r",
+											"        \r",
+											"        // Store access_token as collection variable\r",
+											"        if (response.json().access_token) {\r",
+											"            pm.collectionVariables.set(\"access_token\", response.json().access_token);\r",
+											"            console.log('Access token stored successfully');\r",
+											"        } else {\r",
+											"            console.log('No access_token found in response');\r",
+											"        }\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"used_bike\": {\r\n    \"ad_listing_attributes\": {\r\n      \"allow_whatsapp\": true,\r\n      \"category_id\":113,\r\n      \"city_id\": 410,\r\n      \"city_area_id\": 133,\r\n      \"description\": \"This is a test ad\",\r\n      \"display_name\": \"Test\",\r\n      \"phone\": \"03601234567\",\r\n      \"pictures_attributes\": {\r\n        \"0\": {\r\n          \"pictures_ids\": \"20165260\"\r\n        }\r\n      },\r\n      \"price\": \"199997\"\r\n    },\r\n      \"anti_theft_lock\": 1,\r\n      \"bike_manufacturer_id\": 16,\r\n      \"bike_model_id\": 462,\r\n      \"disc_break\": 0,\r\n      \"engine_type\": \"2-stroke\",\r\n      \"led_light\": 1,\r\n      \"mileage\": \"2300\",\r\n      \"model_year\": 2022,\r\n      \"reg_city_id\": null,\r\n      \"reg_province_id\": 1,\r\n      \"wind_shield\": 0\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/used-bikes.json?api_version={{api_version}}&via_whatsapp={{whatsapp_flag}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"used-bikes.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										},
+										{
+											"key": "via_whatsapp",
+											"value": "{{whatsapp_flag}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ad Detail Page",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}{{posted_bike_ad_url_slug}}.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}{{posted_bike_ad_url_slug}}",
+										"json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Edit Ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Edit Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.be.empty;\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"used_bike\": {\r\n    \"ad_listing_attributes\": {\r\n      \"allow_whatsapp\": true,\r\n      \"category_id\":113,\r\n      \"city_id\": 410,\r\n      \"city_area_id\": 133,\r\n      \"description\": \"This is a test ad\",\r\n      \"display_name\": \"Test\",\r\n      \"id\": {{posted_bike_ad_listing_id}},\r\n      \"phone\": \"03601234567\",\r\n      \"pictures_attributes\": {\r\n        \"0\": {\r\n          \"pictures_ids\": \"20165260\"\r\n        }\r\n      },\r\n      \"price\": \"199997\"\r\n    },\r\n      \"anti_theft_lock\": 1,\r\n      \"bike_manufacturer_id\": 16,\r\n      \"bike_model_id\": 462,\r\n      \"disc_break\": 1,\r\n      \"engine_type\": \"4-stroke\",\r\n      \"led_light\": 1,\r\n      \"mileage\": \"2300\",\r\n      \"model_year\": 2022,\r\n      \"reg_city_id\": null,\r\n      \"reg_province_id\": 1,\r\n      \"wind_shield\": 0\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/used-bikes/{{posted_bike_ad_id}}.json?api_version=25&via_whatsapp={{whatsapp_flag}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"used-bikes",
+										"{{posted_bike_ad_id}}.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "25"
+										},
+										{
+											"key": "via_whatsapp",
+											"value": "{{whatsapp_flag}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Remove Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your Ad has been Removed.\");\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"ad_listing\": {\r\n            \"closed_status\":\"Not selling\"  \r\n        }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}{{posted_bike_ad_url_slug}}/close.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}{{posted_bike_ad_url_slug}}"
+									],
+									"path": [
+										"close.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Reactive Ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Remove Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.be.empty;\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}{{posted_bike_ad_url_slug}}/refresh.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}{{posted_bike_ad_url_slug}}"
+									],
+									"path": [
+										"refresh.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Boost",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Boosted Successful\", () => {\r",
+											"    const response = pm.response.json(); \r",
+											"    pm.expect(response.success).to.include(\"Your Ad has been Boosted\"); \r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}{{posted_ad_url_slug}}/bump.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}{{posted_ad_url_slug}}"
+									],
+									"path": [
+										"bump.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Feature",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"feature_weeks\": 1}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/used-cars/{{posted_bike_ad_id}}/feature.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"used-cars",
+										"{{posted_bike_ad_id}}",
+										"feature.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Accessory",
+					"item": [
+						{
+							"name": "Ad Post",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json(); \r",
+											"\r",
+											"pm.test(\"Ad Post Successful\", function () {\r",
+											"    pm.expect(jsonData.error).to.be.empty;\r",
+											"});\r",
+											"\r",
+											"\r",
+											"\r",
+											"//getting newly posted ad's URL Slug\r",
+											"pm.collectionVariables.set(\"posted_accessory_ad_url_slug\",jsonData.success)\r",
+											"pm.collectionVariables.set(\"posted_accessory_ad_id\",jsonData.ad_id)\r",
+											"pm.collectionVariables.set(\"posted_accessory_ad_listing_id\",jsonData.ad_listing_id)"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const clientId = pm.environment.get(\"client_id\");\r",
+											"const clientSecret = pm.environment.get(\"client_secret\");\r",
+											"const authString = btoa(`${clientId}:${clientSecret}`);\r",
+											"pm.sendRequest({\r",
+											"    url: 'https://www.pakgari.com/oauth/token.json?api_version=25',\r",
+											"    method: 'POST',\r",
+											"    header: {\r",
+											"        'Content-Type': 'application/json',\r",
+											"        'Authorization': `Basic ${authString}`\r",
+											"    },\r",
+											"    body: {\r",
+											"        mode: 'raw',\r",
+											"        raw: JSON.stringify({\r",
+											"            \"username\": \"iostest@maildrop.cc\",\r",
+											"            \"password\": \"1234567\"\r",
+											"        })\r",
+											"    }\r",
+											"}, function (err, response) {\r",
+											"    if (err) {\r",
+											"        console.log('Error:', err);\r",
+											"    } else {\r",
+											"        console.log('OAuth response:', response.json());\r",
+											"        \r",
+											"        // Store access_token as collection variable\r",
+											"        if (response.json().access_token) {\r",
+											"            pm.collectionVariables.set(\"access_token\", response.json().access_token);\r",
+											"            console.log('Access token stored successfully');\r",
+											"        } else {\r",
+											"            console.log('No access_token found in response');\r",
+											"        }\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"ad_listing\": {\r\n    \"allow_whatsapp\": true,\r\n    \"category_id\": 319,\r\n    \"city_area_id\": 160,\r\n    \"city_id\": 410,\r\n    \"condition\": \"1\",\r\n    \"description\": \"This is a Test Ad\",\r\n    \"display_name\": \"test\",\r\n    \"phone\": \"03601234567\",\r\n    \"pictures_attributes\": {\r\n      \"0\": {\r\n        \"pictures_ids\": \"20165699\"\r\n      }\r\n    },\r\n    \"price\": \"1500\",\r\n    \"title\": \"Steering Cover\"\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/accessories-spare-parts.json?api_version={{api_version}}&via_whatsapp={{whatsapp_flag}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"accessories-spare-parts.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										},
+										{
+											"key": "via_whatsapp",
+											"value": "{{whatsapp_flag}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Edit ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Edit Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.be.empty;\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"ad_listing\": {\r\n    \"allow_whatsapp\": true,\r\n    \"category_id\": 319,\r\n    \"city_area_id\": 160,\r\n    \"city_id\": 410,\r\n    \"condition\": \"1\",\r\n    \"description\": \"This is a Test Ad\",\r\n    \"display_name\": \"test\",\r\n    \"id\": {{posted_accessory_ad_listing_id}},\r\n    \"phone\": \"03601234567\",\r\n    \"pictures_attributes\": {\r\n      \"0\": {\r\n        \"pictures_ids\": \"20165699\"\r\n      }\r\n    },\r\n    \"price\": \"1850\",\r\n    \"title\": \"Leather Steering Cover\"\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/accessories-spare-parts/{{posted_accessory_ad_id}}.json?api_version={{api_version}}&via_whatsapp={{whatsapp_flag}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"accessories-spare-parts",
+										"{{posted_accessory_ad_id}}.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										},
+										{
+											"key": "via_whatsapp",
+											"value": "{{whatsapp_flag}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Remove Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your Ad has been Removed.\");\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"ad_listing\": \r\n    {  \r\n     \"closed_status\": \"Not selling\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}{{posted_accessory_ad_url_slug}}/close.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}{{posted_accessory_ad_url_slug}}"
+									],
+									"path": [
+										"close.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Reactive Ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Ad Remove Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.be.empty;\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}{{posted_accessory_ad_url_slug}}/refresh.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}{{posted_accessory_ad_url_slug}}"
+									],
+									"path": [
+										"refresh.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Profile",
+					"item": [
+						{
+							"name": "User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response has a valid user ID\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.user.id).to.exist;\r",
+											"    pm.expect(jsonData.user.id).to.be.a('number');\r",
+											"    pm.expect(jsonData.user.id).to.be.greaterThan(0);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/users.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Edit Profile",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Profile Edit Successful\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql( \"Updated successfully.\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"user\" :{\r\n        \"birthday\": \"03/02/2020\",\r\n        \"city\" : \"Karachi\",\r\n        \"country\": \"Pakistan\",\r\n        \"display_name\": \"NEW USER\",\r\n        \"email\" : \"newuser@mailinator.com\",\r\n        \"gender\": null\r\n\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/users/{{user_id}}.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users",
+										"{{user_id}}.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Bookings",
+					"item": [
+						{
+							"name": "Booking History",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/users/bookings/history.json?access_token={{access_token}}&page=1",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users",
+										"bookings",
+										"history.json"
+									],
+									"query": [
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Current Bookings",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/users/bookings.json?page=0",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users",
+										"bookings.json"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Orders",
+					"item": [
+						{
+							"name": "My Orders",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var response = JSON.parse(responseBody)\r",
+											"var order_id = response['orders'][0]['id']\r",
+											"pm.collectionVariables.set(\"my_order_id\", order_id);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/users/my-orders.json?api_version=18",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users",
+										"my-orders.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "18"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Order Details",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/my-orders/order/{{my_order_id}}.json?api_version=18",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"my-orders",
+										"order",
+										"{{my_order_id}}.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "18"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Credits",
+					"item": [
+						{
+							"name": "My Credits",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"\r",
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/users/my-credits.json?api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users",
+										"my-credits.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Used Car",
+			"item": [
+				{
+					"name": "Saved Search & Alerts",
+					"item": [
+						{
+							"name": "Create Alert/Saved Search",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Success\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Alert successfully added.\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"alert\" :{\r\n        \"dutation\" : 1,\r\n        \"filters\" : \"used-cars/search/-/mk_changan/md_changan-test-model/vr_test-version/\",\r\n        \"is_alert\": true\r\n    },\r\n    \"email\" : \"newuser@mailinator.com\",\r\n    \"keyword\" : \"\",\r\n    \"phone_number\" : \"03915134567\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/alerts.json?access_token={{access_token}}&api_version=19",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"alerts.json"
+									],
+									"query": [
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "api_version",
+											"value": "19"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All Car Alerts",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Success\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"\");\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/alerts.json/?type=car&access_token={{access_token}}&onesignal_token=99326585-d2cf-47a8-813f-59ce332f020c&api_version=19",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"alerts.json",
+										""
+									],
+									"query": [
+										{
+											"key": "type",
+											"value": "car"
+										},
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "onesignal_token",
+											"value": "99326585-d2cf-47a8-813f-59ce332f020c"
+										},
+										{
+											"key": "api_version",
+											"value": "19"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "All Saved Searches/Alerts",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/users/{{user_id}}/all_saved_searches.json?access_token={{access_token}}&api_version=19",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users",
+										"{{user_id}}",
+										"all_saved_searches.json"
+									],
+									"query": [
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "api_version",
+											"value": "19"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Alert id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.collectionVariables.set(\"alert_id\",jsonData.array[0].alert_id);\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/users/{{user_id}}/all_saved_searches.json?access_token={{access_token}}&api_version=19",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users",
+										"{{user_id}}",
+										"all_saved_searches.json"
+									],
+									"query": [
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "api_version",
+											"value": "19"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Edit Saved Search/Alerts",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Success\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(true);\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"alert\" :{\r\n        \"dutation\" : 1,\r\n        \"filters\" : \"/used-cars/search/-/mk_suzuki/md_mehran/vr_vx-cng--2/\",\r\n        \"is_alert\": true\r\n    },\r\n    \"email\" : \"newuser@mailinator.com\",\r\n    \"keyword\" : \"\",\r\n    \"phone_number\" : \"03915134567\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/alerts/{{alert_id}}.json?access_token={{access_token}}&onesignal_token=99326585-d2cf-47a8-813f-59ce332f020c&api_version=6",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"alerts",
+										"{{alert_id}}.json"
+									],
+									"query": [
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "onesignal_token",
+											"value": "99326585-d2cf-47a8-813f-59ce332f020c"
+										},
+										{
+											"key": "api_version",
+											"value": "6"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Bulk Delete Saved Searches/Alerts",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Success\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"  //  pm.expect(jsonData.success).to.eql(\"true\");\r",
+											"   pm.expect(jsonData.message).to.eql(\"Alert successfully unsubscribed.\");\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": " {   \"ids\": [{{alert_id}}]   }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/alerts/bulk_delete.json/?access_token={{access_token}}&onesignal_token=99326585-d2cf-47a8-813f-59ce332f020c&api_version=18",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"alerts",
+										"bulk_delete.json",
+										""
+									],
+									"query": [
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "onesignal_token",
+											"value": "99326585-d2cf-47a8-813f-59ce332f020c"
+										},
+										{
+											"key": "api_version",
+											"value": "18"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Search",
+					"item": [
+						{
+							"name": "Search Lisiting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/used-cars/search/-.json?access_token={{access_token}}&api_version={{api_version}}&extra_info=true&page=1",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"used-cars",
+										"search",
+										"-.json"
+									],
+									"query": [
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										},
+										{
+											"key": "extra_info",
+											"value": "true"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Ad id & URL Slug",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.collectionVariables.set(\"ad_id\",jsonData.result[0].ad_id);\r",
+											"pm.collectionVariables.set(\"ad_url_slug\",jsonData.result[0].url_slug);\r",
+											"pm.collectionVariables.set(\"ad_listing_id\",jsonData.result[0].ad_listing_id);\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/used-cars/search/-.json?access_token={{access_token}}&api_version={{api_version}}&extra_info=true&page=1",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"used-cars",
+										"search",
+										"-.json"
+									],
+									"query": [
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										},
+										{
+											"key": "extra_info",
+											"value": "true"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ad Detail",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}{{ad_url_slug}}.json?access_token={{access_token}}&api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}{{ad_url_slug}}",
+										"json"
+									],
+									"query": [
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Seller Contact Info",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/used-cars/{{ad_id}}/seller_contact_info?access_token={{access_token}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"used-cars",
+										"{{ad_id}}",
+										"seller_contact_info"
+									],
+									"query": [
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Save Ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Ad Save Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"The Ad has been saved\");\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/users/save-ad.json?ad_listing_id={{ad_listing_id}}&access_token={{access_token}}&api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users",
+										"save-ad.json"
+									],
+									"query": [
+										{
+											"key": "ad_listing_id",
+											"value": "{{ad_listing_id}}"
+										},
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Un Save Ad",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Ad UnSave Successful\", function () {\r",
+											"    let jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Successfully removed ads.\");\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/users/remove-selected-ads.json?ad_id={{ad_listing_id}}&access_token={{access_token}}&api_version={{api_version}}",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"users",
+										"remove-selected-ads.json"
+									],
+									"query": [
+										{
+											"key": "ad_id",
+											"value": "{{ad_listing_id}}"
+										},
+										{
+											"key": "access_token",
+											"value": "{{access_token}}"
+										},
+										{
+											"key": "api_version",
+											"value": "{{api_version}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Used Car Dealers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/used-cars/dealers.json?api_version=18&extra_info=true&page=1",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"used-cars",
+								"dealers.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "My Ads",
+			"item": [
+				{
+					"name": "My Active Ads",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/users/my-ads/st_active.json?access_token={{access_token}}&api_version={{api_version}}&page=1&extra_info=true",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"users",
+								"my-ads",
+								"st_active.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "My Pending Ads",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/users/my-ads/st_pending.json?access_token={{access_token}}&api_version={{api_version}}&page=1&extra_info=true",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"users",
+								"my-ads",
+								"st_pending.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "My Removed Ads",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/users/my-ads/st_removed.json?access_token={{access_token}}&api_version={{api_version}}&page=1&extra_info=true",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"users",
+								"my-ads",
+								"st_removed.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Conversation",
+			"item": [
+				{
+					"name": "All Conversation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.error).to.eql(\"\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/conversations.json?access_token={{access_token}}&api_version={{api_version}}&page=1",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"conversations.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Conversation Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"if(jsonData.conversations.length > 0){\r",
+									"pm.collectionVariables.set(\"conversation_id\",jsonData.conversations[0].conversation_id);\r",
+									"}else{\r",
+									"    console.warn(\"The conversations array is empty or does not exist.\");\r",
+									"    pm.collectionVariables.unset(\"conversation_id\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/conversations.json?api_version={{api_version}}&page=1",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"conversations.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Chat Limit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.success).to.eql(true);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/users/can_create_new_conversation.json?access_token={{access_token}}&api_version={{api_version}}&onesignal_token=4cc1d6a1-bf9b-4dd5-82bf-dcff3ef18db4",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"users",
+								"can_create_new_conversation.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "onesignal_token",
+									"value": "4cc1d6a1-bf9b-4dd5-82bf-dcff3ef18db4"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Conversation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/conversations/user-conversation.json?access_token={{access_token}}&api_version={{api_version}}&id={{ad_id}}&type=AdListing&page=1",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"conversations",
+								"user-conversation.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "id",
+									"value": "{{ad_id}}"
+								},
+								{
+									"key": "type",
+									"value": "AdListing"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Ad id & URL Slug Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.collectionVariables.set(\"ad_id\",jsonData.result[0].ad_id);\r",
+									"pm.collectionVariables.set(\"ad_url_slug\",jsonData.result[0].url_slug);\r",
+									"pm.collectionVariables.set(\"ad_listing_id\",jsonData.result[0].ad_listing_id);\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/used-cars/search/-.json?access_token={{access_token}}&api_version={{api_version}}&extra_info=true&page=1",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"used-cars",
+								"search",
+								"-.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Conversation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.success).to.eql(\"Your message has been sent successfully.\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\":\"adListing\",\r\n    \"message_detail\":\r\n    {\r\n        \"login\":\"NEW USER\",\r\n        \"message\":\"This ia an Automated Test Message\",\r\n        \"email\":\"newuser@mailinator.com\"\r\n     }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/conversations.json?access_token={{access_token}}&api_version={{api_version}}&id={{ad_listing_id}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"conversations.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "id",
+									"value": "{{ad_listing_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Conversation Reply",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.success).to.eql(\"Your message has been sent successfully.\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"message\": \"This is an Automated Test Message Reply\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/conversations/{{conversation_id}}/reply.json?access_token={{access_token}}&api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversation_id}}",
+								"reply.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Conversation Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/conversations/{{conversation_id}}.json?access_token={{access_token}}&api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversation_id}}.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mute Conversation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.success).to.eql( \"This conversation has been muted\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/conversations/{{conversation_id}}/mute.json?access_token={{access_token}}&api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversation_id}}",
+								"mute.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Un Mute Conversation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Un Mute Conversation\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.success).to.eql( \"This conversation has been unmuted\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/conversations/{{conversation_id}}/unmute.json?access_token={{access_token}}&api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversation_id}}",
+								"unmute.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Conversation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Delete Conversation\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.success).to.eql( \"Conversation deleted successfully\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/conversations/{{conversation_id}}/delete.json?access_token={{access_token}}&api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversation_id}}",
+								"delete.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "New Cars",
+			"item": [
+				{
+					"name": "Reviews",
+					"item": [
+						{
+							"name": "Index",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"var  temp = jsonData.most_reviewed_cars;\r",
+											"\r",
+											"if(temp){    \r",
+											"    var make_review_url = temp[0].url;\r",
+											"    pm.collectionVariables.set(\"make_review_url\",make_review_url);\r",
+											"}else{\r",
+											"\r",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/new-cars/reviews.json?page=1",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"new-cars",
+										"reviews.json"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Write Review",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Review posted successfully\", function () {\r",
+											"    pm.expect(jsonData.success).to.eql(\"Review has been posted successfully\");\r",
+											"});\r",
+											" pm.test(\"Review ID is not null\", function () {\r",
+											"    pm.expect(jsonData.id).to.not.eql(null);\r",
+											"});\r",
+											"pm.test(\"No errors\", function () {\r",
+											"    pm.expect(jsonData.errors).to.eql(\"\");\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"car_review\": {\r\n    \"title\": \"Corolla Test\",\r\n    \"body\": \"The Toyota Corolla XLI is an ideal choice for those looking for a practical, fuel-efficient, and reliable car at an affordable price. It doesn’t aim to dazzle with luxury or performance but excels at being a solid, no-frills vehicle for daily driving. If you're after a hassle-free ownership experience and a car that will last you for years, the Corolla XLI is hard to beat.\",\r\n    \"model_year\": 2024,\r\n    \"car_manufacturer_id\": 42,\r\n    \"car_model_id\": 118,\r\n    \"car_model_generation_id\": 8,\r\n    \"car_version_id\": 669,\r\n    \"mileage_city\": \"12\",\r\n    \"mileage_highway\": \"15\",\r\n    \"comfort_rating\": \"2\",\r\n    \"fuel_economy_rating\": \"5\",\r\n    \"performance_rating\": \"3\",\r\n    \"style_rating\": \"4\",\r\n    \"value_for_money_rating\": \"1\",\r\n    \"familiarity\": 1\r\n  },\r\n\"featured\": \"0\",\r\n\"mobile_phone\": \"03915134567\"\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/new-cars/reviews.json?api_version=18",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"new-cars",
+										"reviews.json"
+									],
+									"query": [
+										{
+											"key": "api_version",
+											"value": "18"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Review Detail Page",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/{{review_detail_url}}.json",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"{{review_detail_url}}.json"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Make Review Page",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"var  temp = jsonData.model_reviews;\r",
+											"\r",
+											"if(temp){\r",
+											"    var review_detail = temp[0].detail_url;\r",
+											"    pm.collectionVariables.set(\"review_detail_url\",review_detail);\r",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}{{make_review_url}}.json",
+									"host": [
+										"{{domain_url}}{{make_review_url}}",
+										"json"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "All Car Make Model",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/new-cars/all_car_make_models.json?access_token={{access_token}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"new-cars",
+								"all_car_make_models.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Make",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var response = JSON.parse(responseBody)\r",
+									"var link = response.active_models.models[0].link.replace(/\\/$/, \"\");    //removing trailing  '/' \r",
+									"pm.collectionVariables.set(\"new_model_link\",link)\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.error).to.eql(\"\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/new-cars/{{new_make}}.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"new-cars",
+								"{{new_make}}.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Model",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var response = JSON.parse(responseBody)\r",
+									"var link = response.price_block.data[0].link;  \r",
+									"pm.collectionVariables.set(\"new_version_link\",link)\r",
+									"\r",
+									"var link2 = response.other_generations.data[1].link.replace(/\\/$/, \"\");    //removing trailing  '/' \r",
+									"pm.collectionVariables.set(\"new_generation_link\",link2)\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.error).to.eql( \"\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{new_model_link}}.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}{{new_model_link}}",
+								"json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.error).to.eql( \"\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{new_generation_link}}.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}{{new_generation_link}}",
+								"json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Version Group",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/new-cars/toyota/corolla/xli.json",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"new-cars",
+								"toyota",
+								"corolla",
+								"xli.json"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Version",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Success\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.error).to.eql( \"\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/{{new_version_link}}.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"{{new_version_link}}.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Model Images",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{new_model_link}}/photos.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}{{new_model_link}}"
+							],
+							"path": [
+								"photos.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Model Specifications",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{new_model_link}}/specifications.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}{{new_model_link}}"
+							],
+							"path": [
+								"specifications.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Comparison",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsondata = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"car_comparison_url\",jsondata.main_comparison.url);\r",
+									"\r",
+									"pm.test(\"Car Comparison Landing Page\",function(){\r",
+									"    pm.expect(jsondata.error).to.be.empty;\r",
+									"})\r",
+									"\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/new-cars/compare.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"new-cars",
+								"compare.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Comparison Detail",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsondata = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Car Comparison Detail Page\",function(){\r",
+									"    pm.expect(jsondata.error).to.be.empty;\r",
+									"})\r",
+									"\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{car_comparison_url}}.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}{{car_comparison_url}}",
+								"json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fuel Average Page",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/new-cars/toyota/corolla/fuel-average.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"new-cars",
+								"toyota",
+								"corolla",
+								"fuel-average.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pricelist",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/new-cars/pricelist.json?api_version=18&make={{new_make}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"new-cars",
+								"pricelist.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								},
+								{
+									"key": "make",
+									"value": "{{new_make}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Dealers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/new-cars/dealers.json?api_version=18&extra_info=true&page=1",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"new-cars",
+								"dealers.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "New Bike",
+			"item": [
+				{
+					"name": "Make",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var response = JSON.parse(responseBody)\r",
+									"var link = response.active_models[0].link.replace(/\\/$/, \"\");    //removing trailing  '/' \r",
+									"pm.collectionVariables.set(\"new_bike_model_link\",link)\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"/*pm.test(\"Success\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.error).to.eql(\"\");\r",
+									"});*/\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/bikes/{{new_bike_make}}.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"bikes",
+								"{{new_bike_make}}.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Model",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{new_bike_model_link}}.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}{{new_bike_model_link}}",
+								"json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Comparison",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsondata = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"bike_comparison_url\",jsondata.main_comparison.url);\r",
+									"\r",
+									"pm.test(\"Bike Comparison Landing Page\",function(){\r",
+									"    pm.expect(jsondata.error).to.be.empty;\r",
+									"})\r",
+									"\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/bikes/compare.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"bikes",
+								"compare.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Comparison Detail",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsondata = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Car Comparison Detail Page\",function(){\r",
+									"    pm.expect(jsondata.error).to.be.empty;\r",
+									"})\r",
+									"\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{bike_comparison_url}}.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}{{bike_comparison_url}}",
+								"json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auto Store",
+			"item": [
+				{
+					"name": "Top Selling and Hot Deals",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/accessories-spare-parts/hot_and_top_selling_accessories.json?api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"accessories-spare-parts",
+								"hot_and_top_selling_accessories.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Auto Store Landing",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/main/landing.json?api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"main",
+								"landing.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Auto Store Search Listing",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/accessories-spare-parts/search/-.json?api_version=21&extra_info=true",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"accessories-spare-parts",
+								"search",
+								"-.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "21"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Shipping Address",
+			"item": [
+				{
+					"name": "Shipping Addresses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"shipping_address_id\", jsonData.user_shipping_addresses[0].id);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/user_shipping_addresses.json?access_token={{access_token}}&api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"user_shipping_addresses.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add New Shipping Address",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_shipping_address\": {\r\n        \"name\": \"Taimoor\",\r\n        \"email\": \"taimoor_test@mailinator.com\",\r\n        \"phone\": \"03601234567\",\r\n        \"address\": \"2nd Floor Saeed Alam Towers\",\r\n        \"city_id\": 410,\r\n        \"city_area_id\": 160,\r\n        \"city_area\": \"Gullberg\",\r\n        \"landmark\": \"Jam-e-Shirin Park\"\r\n    }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/user_shipping_addresses.json?access_token={{access_token}}&api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"user_shipping_addresses.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Shipping Address",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_shipping_address\": {\r\n        \"address\": \"Last Test\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/user_shipping_addresses/{{shipping_address_id}}.json?access_token={{access_token}}&api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"user_shipping_addresses",
+								"{{shipping_address_id}}.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Shipping Address",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/user_shipping_addresses/{{shipping_address_id}}.json?access_token={{access_token}}&api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"user_shipping_addresses",
+								"{{shipping_address_id}}.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Estore Order",
+			"item": [
+				{
+					"name": "Search Listing",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"var ad_id = jsonData.result[2].ad_id;\r",
+									"pm.collectionVariables.set(\"autostore_ad_id\", ad_id);\r",
+									"pm.collectionVariables.set(\"autostore_ad_url_slug\",jsonData.result[2].url_slug);\r",
+									"pm.collectionVariables.set(\"autostore_ad_price\",jsonData.result[2].price);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/accessories-spare-parts/search/-.json?api_version={{api_version}}&extra_info=true",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"accessories-spare-parts",
+								"search",
+								"-.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ad Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{autostore_ad_url_slug}}.json?api_version={{api_version}}&extra_info=true",
+							"host": [
+								"{{domain_url}}{{autostore_ad_url_slug}}",
+								"json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add to Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"autostore_cart_id\",jsonData.cart_id);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/carts/increment_item.json?api_version={{api_version}}&cart_item_id={{autostore_ad_id}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"carts",
+								"increment_item.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "cart_item_id",
+									"value": "{{autostore_ad_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sync Cart",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/carts/sync_cart.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"carts",
+								"sync_cart.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove from Cart",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/carts/decrement_item.json?api_version={{api_version}}&cart_item_id={{autostore_ad_id}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"carts",
+								"decrement_item.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "cart_item_id",
+									"value": "{{autostore_ad_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Shipping Addresses Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"shipping_address_id\", jsonData.user_shipping_addresses[0].id);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/user_shipping_addresses.json?access_token={{access_token}}&api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"user_shipping_addresses.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buy.json/Getting Order Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"order_id\", jsonData.order_details.id);\r",
+									"\r",
+									"pm.test(\"Successful Login\", function () {\r",
+									"    pm.expect(jsonData.success).include(\"Order placed\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"buying_request\": {\r\n    \"cart_id\": {{autostore_cart_id}},\r\n    \"address_id\": \"{{shipping_address_id}}\",\r\n    \"city_id\": 410,\r\n    \"price\": {{autostore_ad_price}}\r\n  },\r\n  \"user\": {\r\n    \"email\": \"\"\r\n  },\r\n  \"products\": [\r\n    {\r\n      \"id\": {{autostore_ad_id}},\r\n      \"quantity\": 1\r\n    }\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/buy.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"buy.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Proceed Checkout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json()\r",
+									"\r",
+									"pm.collectionVariables.set(\"payment_id\", jsonData.paymentId);\r",
+									"\r",
+									"pm.test(\"Order Placed Successful\", function () {\r",
+									"    let jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.success).to.eql(true);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"product_id\": \"56\",\r\n  \"discount_code\": \"\",\r\n  \"s_id\": {{order_id}},\r\n  \"s_type\": \"estore\",\r\n  \"payment_method_id\": 107 //JC \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/payments/proceed_checkout.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"payments",
+								"proceed_checkout.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "initiate JC",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"cnic_number\": \"12345-1234567-8\",\r\n    \"mobile_number\": \"03123456789\",\r\n    \"payment_id\": \"{{payment_id}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/payments/initiate_jazz_cash_mobile_account.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"payments",
+								"initiate_jazz_cash_mobile_account.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Payment Status",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SIFM",
+			"item": [
+				{
+					"name": "SIFM Cities",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var response = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.collectionVariables.set(\"sifm_city_id\",response.sell_it_for_me_cities[0].id)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/main/sell-it-for-me-cities.json?access_token={{access_token}}&api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"main",
+								"sell-it-for-me-cities.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SIFM City Area",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var response = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.collectionVariables.set(\"sifm_cityarea_id\",response.popular[0].id)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/main/get_all_city_areas.json?access_token={{access_token}}&api_version={{api_version}}&city_id={{sifm_city_id}}&city_areas_type=inspection",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"main",
+								"get_all_city_areas.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "city_id",
+									"value": "{{sifm_city_id}}"
+								},
+								{
+									"key": "city_areas_type",
+									"value": "inspection"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lead Phase1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var response = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.collectionVariables.set(\"sifm_lead_id\",response.sell_it_for_me_lead_id)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sell_it_for_me_lead\":\r\n    {\r\n        \"city_id\":1,\r\n        \"name\":\"NEW USER\",\r\n        \"mobile_number\":\"03234822302\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/sell_it_for_me_leads.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"sell_it_for_me_leads.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lead Phase 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sell_it_for_me_lead\":\r\n    {\r\n        \"car_manufacturer_id\":130,\r\n        \"car_model_id\":996,\r\n        \"car_version_id\":null,\r\n        \"model_year\":2020,\r\n        \"mobile_number\":\"03234822302\",\r\n        \"registration_location_type\":\"Province\",\r\n        \"registration_location_id\":\"3\",\r\n        \"assembly\":\"local\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/sell_it_for_me_leads/{{sifm_lead_id}}.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"sell_it_for_me_leads",
+								"{{sifm_lead_id}}.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lead Phase3",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sell_it_for_me_lead\": {\r\n        \"city_area_id\": {{sifm_cityarea_id}},\r\n        \"address\": \"test adress\",\r\n        \"scheduled_date\": \"11-12-2024\"\r\n    },\r\n    \"user\": {\r\n        \"email\": \"newuser@mailinator.com\"\r\n    },\r\n    \"slot_not_found\": true,\r\n    \"check_credits\": true\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/sell_it_for_me_leads/{{sifm_lead_id}}.json?api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"sell_it_for_me_leads",
+								"{{sifm_lead_id}}.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reserve Slot",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"reserved_till\":0,\"is_reserved\":false}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/sell_it_for_me_leads/{{sifm_lead_id}}/reserve_slot.json?api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"sell_it_for_me_leads",
+								"{{sifm_lead_id}}",
+								"reserve_slot.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Proceed Checkout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extracting the paymentId from the response\r",
+									"let jsonData = pm.response.json();\r",
+									"let paymentId = jsonData.paymentId;\r",
+									"\r",
+									"// Storing the paymentId as a collection variable\r",
+									"pm.collectionVariables.set(\"payment_id\", paymentId);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"discount_code\": \"\",\r\n  \"payment_method_id\": 107, //JC\r\n  \"product_id\": 146,\r\n  \"s_id\": \"{{sifm_lead_id}}\",\r\n  \"s_type\": \"sell_it_for_me_lead\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/payments/proceed_checkout.json?api_version=22",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"payments",
+								"proceed_checkout.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "22"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Initiate Payment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validate the success key in the response\r",
+									"pm.test(\"Validate success key for Payment received\", function () {\r",
+									"    pm.expect(pm.response.json().success).to.equal(\"Payment received\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"cnic_number\": \"12345-1234567-8\",\r\n  \"mobile_number\": \"03123456789\",\r\n  \"payment_id\": \"{{payment_id}}\",\r\n  \"save_payment_info\": true\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/payments/initiate_jazz_cash_mobile_account.json?api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"payments",
+								"initiate_jazz_cash_mobile_account.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Inspection",
+			"item": [
+				{
+					"name": "Car Sure Cities",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var response = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.collectionVariables.set(\"carsure_city_id\",response.carsure_cities[0].id)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/main/carsure_cities.json?access_token={{access_token}}&api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"main",
+								"carsure_cities.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lead",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"car_certification_request\":{\"model_year\":2021,\"make_id\":41,\"model_id\":58,\"name\":\"NEW USER\",\"mobile\":\"03915134567\",\"city_id\":{{carsure_city_id}},\"request_type\":\"Buyer\"},\"user\":{\"email\":\"newuser@mailinator.com\"}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/requests.json?access_token={{access_token}}&api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"requests.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auction Sheet",
+			"item": [
+				{
+					"name": "Auction Sheet Verify",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var response = JSON.parse(responseBody)\r",
+									"\r",
+									"pm.collectionVariables.set(\"auctionsheet_id\",response.auctionSheet.id)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/auction_sheet_requests/verify.json?access_token={{access_token}}&api_version={{api_version}}&chassis_number=ZVW30-5526960",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"auction_sheet_requests",
+								"verify.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "chassis_number",
+									"value": "ZVW30-5526960"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Auction Sheet Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"auction_sheet_request\": {\r\n        \"auction_sheet_id\": {{auctionsheet_id}},\r\n        \"display_name\": \"Test\",\r\n        \"email\": \"newuser@mailinator.com\",\r\n        \"mobile_phone\": \"032348222302\",\r\n        \"used_car_id\": \"\"\r\n    },\r\n    \"new_auction_sheet_id\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/auction_sheet_requests.json?access_token={{access_token}}&api_version={{api_version}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"auction_sheet_requests.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Insurance",
+			"item": [
+				{
+					"name": "Car Insurance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"if(jsonData.success)\r",
+									"{\r",
+									"    pm.test(\"Success\", function () {\r",
+									"        pm.expect(jsonData.success).to.eql(\"Your request has been submitted successfully. Our representative will contact you in the next 24 hrs.\");\r",
+									"        });\r",
+									"    } \r",
+									"    else\r",
+									"     {\r",
+									"     pm.test(\"Success\", function () {\r",
+									"        if(jsonData.error == \"\" && jsonData.success ==\"\"){\r",
+									"            return true;\r",
+									"        }\r",
+									"    });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"car_insurance_lead\": {\r\n    \"car_value\": \"3000000\",\r\n    \"city_id\": 410,\r\n    \"cnic\": \"00000-0000000-0\",\r\n    \"company\": \"EFU General Insurance Ltd\",\r\n    \"engine_capacity\": \"650\",\r\n    \"generation_id\": \"661\",\r\n    \"insurance_company_id\": \"2\",\r\n    \"manufacturer_id\": \"41\",\r\n    \"mobile_number\": \"{{mobile_number}}\",\r\n    \"model_id\": \"47\",\r\n    \"name\": \"test\",\r\n    \"registration_status\": 1,\r\n    \"tracker\": \"false\",\r\n    \"version_id\": \"15\",\r\n    \"year\": \"2024\"\r\n  }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/car-insurance.json?api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"car-insurance.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Finance",
+			"item": [
+				{
+					"name": "New Car Finance",
+					"item": [
+						{
+							"name": "New Car Finance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"\r",
+											"\r",
+											"pm.test(\"Check if the response contains the correct success message\", function () {\r",
+											"    pm.expect(jsonData.success).to.include(\"You have successfully applied for car financing\");\r",
+											"\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check if the response contains the correct user mobile number\", function () {\r",
+											"    pm.expect(jsonData.user.mobile).to.equal(\"03601234567\");\r",
+											"});\r",
+											"\r",
+											"pm.test('Verify that the \"error\" key is null', function () {\r",
+											"    pm.expect(jsonData.error).to.be.null;\r",
+											"});\r",
+											"// Extracting car_finance_lead_id from the response and storing it as a collection variable\r",
+											"//pm.collectionVariables.set(\"car_finance_lead_id\", jsonData.car_finance_lead_id.toString());\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"car_finance_lead\": {\r\n    \"car_loan_id\": \"7\",\r\n    \"city_id\": 109,\r\n    \"cnic\": \"00000-0000000-0\",\r\n    \"current_bank\": 2,\r\n    \"down_payment\": \"40\",\r\n    \"in_debt\": false,\r\n    \"make_id\": \"41\",\r\n    \"mobile\": \"{{mobile_number}}\",\r\n    \"model_id\": \"47\",\r\n    \"name\": \"test\",\r\n    \"occupation\": \"Salaried\",\r\n    \"processing_period\": 2,\r\n    \"salary\": \"Above 80,000\",\r\n    \"tenure\": \"2\",\r\n    \"version_id\": \"3179\"\r\n  },\r\n  \"user\": {\r\n      \"email\": \"{{email}}\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/car-loan-calculator.json?&api_version=18",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"car-loan-calculator.json"
+									],
+									"query": [
+										{
+											"key": null,
+											"value": null
+										},
+										{
+											"key": "api_version",
+											"value": "18"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Used Car Finance",
+					"item": [
+						{
+							"name": "Used Car Finance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"\r",
+											"\r",
+											"pm.test(\"Check if the response contains the correct success message\", function () {\r",
+											"    pm.expect(jsonData.success).to.include(\"You have successfully applied for car financing\");\r",
+											"\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check if the response contains the correct user mobile number\", function () {\r",
+											"    pm.expect(jsonData.user.mobile).to.equal(\"03601234567\");\r",
+											"});\r",
+											"\r",
+											"pm.test('Verify that the \"error\" key is null', function () {\r",
+											"    pm.expect(jsonData.error).to.be.null;\r",
+											"});\r",
+											"// Extracting car_finance_lead_id from the response and storing it as a collection variable\r",
+											"//pm.collectionVariables.set(\"car_finance_lead_id\", jsonData.car_finance_lead_id.toString());\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"car_finance_lead\": {\r\n    \"car_loan_id\": \"6\",\r\n    \"city_id\": 109,\r\n    \"cnic\": \"11111-1111111-1\",\r\n    \"current_bank\": 1,\r\n    \"down_payment\": \"40.0\",\r\n    \"in_debt\": false,\r\n    \"make_id\": \"41\",\r\n    \"mobile\": \"{{mobile_number}}\",\r\n    \"model_id\": \"47\",\r\n    \"model_year\": \"2023\",\r\n    \"name\": \"Chat Test\",\r\n    \"occupation\": \"Self-Employed\",\r\n    \"price\": \"3000000\",\r\n    \"processing_period\": 2,\r\n    \"salary\": \"Above 80,000\",\r\n    \"tenure\": \"2\",\r\n    \"used_car_id\": \"\",\r\n    \"version_id\": \"3179\",\r\n    \"user\": {\r\n      \"email\": \"{{email}}\"\r\n    }\r\n  }\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{domain_url}}/car-loan-calculator.json?&api_version=18",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"car-loan-calculator.json"
+									],
+									"query": [
+										{
+											"key": null,
+											"value": null
+										},
+										{
+											"key": "api_version",
+											"value": "18"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Car Registration/Transfer",
+			"item": [
+				{
+					"name": "Car Reg/Transfer 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response JSON",
+									"const responseJson = pm.response.json();",
+									"",
+									"// Test for success message",
+									"pm.test(\"Success message is present and correct\", function () {",
+									"    pm.expect(responseJson.success).to.eql(\"Your car registration lead has been created successfully\");",
+									"});",
+									"",
+									"// Test that error is null",
+									"pm.test(\"Error is null\", function () {",
+									"    pm.expect(responseJson.error).to.be.null;",
+									"});",
+									"",
+									"// Test that car_registration_transfer_lead_id exists and is a number",
+									"pm.test(\"Car registration transfer lead ID exists and is a number\", function () {",
+									"    pm.expect(responseJson.car_registration_transfer_lead_id).to.exist;",
+									"    pm.expect(responseJson.car_registration_transfer_lead_id).to.be.a('number');",
+									"});",
+									"",
+									"// Store car_registration_transfer_lead_id in collection variable",
+									"pm.test(\"Store car registration transfer lead ID in collection variable\", function () {",
+									"    if (responseJson.car_registration_transfer_lead_id) {",
+									"        pm.collectionVariables.set(\"car_registration_transfer_lead_id\", responseJson.car_registration_transfer_lead_id);",
+									"        console.log(\"Stored car_registration_transfer_lead_id: \" + responseJson.car_registration_transfer_lead_id);",
+									"    }",
+									"});",
+									"",
+									"// Optional: Test response status code",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"car_registration_transfer_lead\": {\n    \"name\": \"Test\",\n    \"mobile_number\": \"{{mobile_number}}\",\n    \"service_type\": 1,\n    \"filer_status\": 0\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/car_registration_transfer_leads.json?&api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"car_registration_transfer_leads.json"
+							],
+							"query": [
+								{
+									"key": null,
+									"value": null
+								},
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Car Reg/Transfer 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response JSON",
+									"const responseJson = pm.response.json();",
+									"",
+									"// Test for success message",
+									"pm.test(\"Success message is present and correct\", function () {",
+									"    pm.expect(responseJson.success).to.eql(\"Your car registration lead has been created successfully\");",
+									"});",
+									"",
+									"// Test that error is null",
+									"pm.test(\"Error is null\", function () {",
+									"    pm.expect(responseJson.error).to.be.null;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"car_registration_transfer_lead\": {\n    \"car_manufacturer_id\": 41,\n    \"car_model_id\": 47,\n    \"car_version_id\": 15,\n    \"model_year\": 2022,\n    \"registered_in_id\": 1\n  },\n  \"completed\" : true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/car_registration_transfer_leads/{{car_registration_transfer_lead_id}}.json?api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"car_registration_transfer_leads",
+								"{{car_registration_transfer_lead_id}}.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rides",
+			"item": [
+				{
+					"name": "New Folder",
+					"item": [
+						{
+							"name": "Cool Rides Search",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{domain_url}}/rides/search_rides.json?&api_version=18&page=1&sortby=updated_at+desc",
+									"host": [
+										"{{domain_url}}"
+									],
+									"path": [
+										"rides",
+										"search_rides.json"
+									],
+									"query": [
+										{
+											"key": null,
+											"value": null
+										},
+										{
+											"key": "api_version",
+											"value": "18"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "sortby",
+											"value": "updated_at+desc"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "My Rides",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"if(jsonData.error){\r",
+									"    pm.test(\"Sucess\", function () {\r",
+									"        pm.expect(jsonData.error).to.eql(\"No results found.\");});\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/rides/my_rides.json?api_version=18&page=1&extra_info=true",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"rides",
+								"my_rides.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Ride",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"let match = jsonData.success.match(/(\\d+)(?=\\/?$)/);\r",
+									"if (match) {\r",
+									"    pm.collectionVariables.set(\"ride_id\", match[1]);\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"ride\": {\r\n    \"car_manufacturer_id\": 41,\r\n    \"car_model_id\": 47,\r\n    \"cool_about_ride\": \"TEST RIDE\",\r\n    \"engine_size\": \"2500\",\r\n    \"model_year\": 2024,\r\n    \"nick_name\": \"Test Time\",\r\n    \"pictures_attributes\": {\r\n      \"0\": {\r\n        \"pictures_ids\": \"327994\"\r\n      }\r\n    },\r\n    \"public\": \"true\",\r\n    \"ride_category_ids\": [\"1\"],\r\n    \"ride_type\": \"Car\",\r\n    \"selling\": \"No\",\r\n    \"top_speed\": \"160\"\r\n  },\r\n  \"user_id\": {{user_id}}\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/rides.json?api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"rides.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Ride",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"ride\": {\r\n    \"car_manufacturer_id\": 41,\r\n    \"car_model_id\": 47,\r\n    \"model_year\": 2024,\r\n    \"public\": \"false\",\r\n    \"ride_type\": \"Car\",\r\n    \"selling\": \"No\"\r\n  },\r\n  \"user_id\": {{user_id}}\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{domain_url}}/rides/{{ride_id}}.json?&api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"rides",
+								"{{ride_id}}.json"
+							],
+							"query": [
+								{
+									"key": null,
+									"value": null
+								},
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Ride",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"if(jsonData.success != null){\r",
+									"    pm.test(\"Ride deleted successfully\", function () {\r",
+									"        pm.expect(jsonData.success).to.eql(\"The Ride has been deleted.\");\r",
+									"    })\r",
+									"} else {\r",
+									"    pm.test(\"Ride deletion failed\", function () {\r",
+									"        pm.expect(jsonData.error).to.not.eql(null);\r",
+									"    });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/rides/delete_ride.json?api_version=18&id={{ride_id}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"rides",
+								"delete_ride.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								},
+								{
+									"key": "id",
+									"value": "{{ride_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sponsored Widget",
+			"item": [
+				{
+					"name": "Get Ad id & URL Slug Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.collectionVariables.set(\"ad_id\",jsonData.result[0].ad_id);\r",
+									"pm.collectionVariables.set(\"ad_url_slug\",jsonData.result[0].url_slug);\r",
+									"pm.collectionVariables.set(\"ad_listing_id\",jsonData.result[0].ad_listing_id);\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/used-cars/search/-.json?access_token={{access_token}}&api_version={{api_version}}&extra_info=true&page=1",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"used-cars",
+								"search",
+								"-.json"
+							],
+							"query": [
+								{
+									"key": "access_token",
+									"value": "{{access_token}}"
+								},
+								{
+									"key": "api_version",
+									"value": "{{api_version}}"
+								},
+								{
+									"key": "extra_info",
+									"value": "true"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sponsored Widget",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/sponsored_partner_widgets.json?ad_id={{ad_id}}",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"sponsored_partner_widgets.json"
+							],
+							"query": [
+								{
+									"key": "ad_id",
+									"value": "{{ad_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Videos",
+			"item": [
+				{
+					"name": "Videos Page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"video_urlSlug\",jsonData.byCategory.ownerReviews[0].urlSlug);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/videos.json?api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"videos.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Video Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{video_urlSlug}}.json?api_version=18",
+							"host": [
+								"{{domain_url}}{{video_urlSlug}}",
+								"json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Landing Pages",
+			"item": [
+				{
+					"name": "Landing Page",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/main/landing.json?api_version=19",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"main",
+								"landing.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "19"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Battery Section",
+			"item": [
+				{
+					"name": "Landing",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"const firstBatteryUrl = response.batteriesByMake.data[0].url.replace(/\\/$/, \"\");",
+									"pm.collectionVariables.set(\"battery_brand_url\", firstBatteryUrl);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/car-battery.json?api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"car-battery.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Brand Page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"const brandBatteryUrl = response.brandBattery.data[0].url.replace(/\\/$/, '');",
+									"pm.collectionVariables.set('battery_model_url', brandBatteryUrl);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{battery_brand_url}}.json?api_version=18",
+							"host": [
+								"{{domain_url}}{{battery_brand_url}}",
+								"json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Model Page",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}{{battery_model_url}}.json?api_version=18",
+							"host": [
+								"{{domain_url}}{{battery_model_url}}",
+								"json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filter Options",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{domain_url}}/car-battery/filter_options.json?api_version=18",
+							"host": [
+								"{{domain_url}}"
+							],
+							"path": [
+								"car-battery",
+								"filter_options.json"
+							],
+							"query": [
+								{
+									"key": "api_version",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Staging Only APIs",
+			"item": [
+				{
+					"name": "Clear Number",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://www.pakgari.com/clear-number?numbers={{mobile_number}}",
+							"protocol": "https",
+							"host": [
+								"www",
+								"pakgari",
+								"com"
+							],
+							"path": [
+								"clear-number"
+							],
+							"query": [
+								{
+									"key": "numbers",
+									"value": "{{mobile_number}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clear Pending Payments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://www.pakgari.com/clear_pending_payments?user_id={{user_id}}",
+							"protocol": "https",
+							"host": [
+								"www",
+								"pakgari",
+								"com"
+							],
+							"path": [
+								"clear_pending_payments"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "{{user_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Logout",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Success\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.success).to.eql( \"User is logout successfully\");\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.collectionVariables.unset(\"access_token\");\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{domain_url}}/oauth/expire.json?api_version={{api_version}}",
+					"host": [
+						"{{domain_url}}"
+					],
+					"path": [
+						"oauth",
+						"expire.json"
+					],
+					"query": [
+						{
+							"key": "api_version",
+							"value": "{{api_version}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "api_version",
+			"value": "25",
+			"type": "string"
+		},
+		{
+			"key": "ad_id",
+			"value": ""
+		},
+		{
+			"key": "ad_url_slug",
+			"value": ""
+		},
+		{
+			"key": "user_id",
+			"value": ""
+		},
+		{
+			"key": "ad_listing_id",
+			"value": ""
+		},
+		{
+			"key": "alert_id",
+			"value": ""
+		},
+		{
+			"key": "new_make",
+			"value": "toyota",
+			"type": "string"
+		},
+		{
+			"key": "new_model_link",
+			"value": ""
+		},
+		{
+			"key": "new_version_link",
+			"value": ""
+		},
+		{
+			"key": "new_generation_link",
+			"value": ""
+		},
+		{
+			"key": "my_active_ad_id",
+			"value": ""
+		},
+		{
+			"key": "workshop_city_id",
+			"value": ""
+		},
+		{
+			"key": "workshop_cityarea_id",
+			"value": ""
+		},
+		{
+			"key": "workshop_lead_id",
+			"value": ""
+		},
+		{
+			"key": "auctionsheet_id",
+			"value": ""
+		},
+		{
+			"key": "carsure_city_id",
+			"value": ""
+		},
+		{
+			"key": "sifm_city_id",
+			"value": ""
+		},
+		{
+			"key": "sifm_lead_id",
+			"value": ""
+		},
+		{
+			"key": "sifm_cityarea_id",
+			"value": ""
+		},
+		{
+			"key": "posted_ad_url_slug",
+			"value": ""
+		},
+		{
+			"key": "posted_ad_id",
+			"value": ""
+		},
+		{
+			"key": "posted_ad_listing_id",
+			"value": ""
+		},
+		{
+			"key": "autostore_ad_id",
+			"value": ""
+		},
+		{
+			"key": "autostore_ad_url_slug",
+			"value": ""
+		},
+		{
+			"key": "shipping_address_id",
+			"value": ""
+		},
+		{
+			"key": "autostore_ad_price",
+			"value": ""
+		},
+		{
+			"key": "autostore_cart_id",
+			"value": ""
+		},
+		{
+			"key": "order_id",
+			"value": ""
+		},
+		{
+			"key": "payment_id",
+			"value": ""
+		},
+		{
+			"key": "pin_id",
+			"value": ""
+		},
+		{
+			"key": "mobile_number",
+			"value": "03601234567",
+			"type": "string"
+		},
+		{
+			"key": "posted_bike_ad_url_slug",
+			"value": ""
+		},
+		{
+			"key": "posted_bike_ad_id",
+			"value": ""
+		},
+		{
+			"key": "posted_bike_ad_listing_id",
+			"value": ""
+		},
+		{
+			"key": "whatsapp_flag",
+			"value": "true",
+			"type": "string"
+		},
+		{
+			"key": "posted_accessory_ad_url_slug",
+			"value": ""
+		},
+		{
+			"key": "posted_accessory_ad_id",
+			"value": ""
+		},
+		{
+			"key": "posted_accessory_ad_listing_id",
+			"value": ""
+		},
+		{
+			"key": "new_bike_make",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "new_bike_model_link",
+			"value": ""
+		},
+		{
+			"key": "car_comparison_url",
+			"value": ""
+		},
+		{
+			"key": "bike_comparison_url",
+			"value": ""
+		},
+		{
+			"key": "maildrop_email",
+			"value": "postman1",
+			"type": "string"
+		},
+		{
+			"key": "email_otp",
+			"value": ""
+		},
+		{
+			"key": "email_pin",
+			"value": ""
+		},
+		{
+			"key": "my_order_id",
+			"value": ""
+		},
+		{
+			"key": "make_review_url",
+			"value": ""
+		},
+		{
+			"key": "review_detail_url",
+			"value": ""
+		},
+		{
+			"key": "ride_id",
+			"value": ""
+		},
+		{
+			"key": "video_urlSlug",
+			"value": ""
+		},
+		{
+			"key": "random_user",
+			"value": ""
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "car_registration_transfer_lead_id",
+			"value": ""
+		},
+		{
+			"key": "battery_brand_url",
+			"value": ""
+		},
+		{
+			"key": "battery_model_url",
+			"value": ""
+		}
+	]
+}
